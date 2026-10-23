@@ -7,6 +7,8 @@ import {
   HttpStatus,
   Param,
 } from '@nestjs/common';
+import { CheckPolicy } from '../common/policies/check-policy.decorator';
+import { PolicyAction, PolicySubject } from '../common/policies/policy.types';
 import {
   ApiTags,
   ApiOperation,
@@ -83,6 +85,7 @@ export class CustodyController {
 
   @Post(':id/return')
   @UseGuards(JwtAuthGuard)
+  @CheckPolicy(PolicyAction.RETURN, PolicySubject.CUSTODY)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({
@@ -101,7 +104,8 @@ export class CustodyController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Not Found - Custody does not exist',
+    description:
+      'Not Found - Custody does not exist, or you are not its holder',
   })
   async returnCustody(@Param('id') custodyId: string): Promise<CustodyResponseDto> {
     return this.custodyService.returnCustody(custodyId);
@@ -109,6 +113,7 @@ export class CustodyController {
 
   @Post(':id/violation')
   @UseGuards(JwtAuthGuard)
+  @CheckPolicy(PolicyAction.REPORT_VIOLATION, PolicySubject.CUSTODY)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({
@@ -127,7 +132,8 @@ export class CustodyController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Not Found - Custody does not exist',
+    description:
+      'Not Found - Custody does not exist, or you are neither its holder nor the pet owner',
   })
   async violationCustody(@Param('id') custodyId: string): Promise<CustodyResponseDto> {
     return this.custodyService.violationCustody(custodyId);

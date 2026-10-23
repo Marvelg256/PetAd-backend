@@ -5,6 +5,7 @@ import { DocumentsService } from '../documents/documents.service';
 import { EventsService } from '../events/events.service';
 import { EventEntityType, EventType } from '@prisma/client';
 import { Request } from 'express';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('AdoptionController', () => {
   let controller: AdoptionController;
@@ -42,6 +43,13 @@ describe('AdoptionController', () => {
         {
           provide: EventsService,
           useValue: mockEventsService,
+        },
+        // Required by PoliciesGuard, which protects the adoption endpoints.
+        {
+          provide: PrismaService,
+          useValue: {
+            adoption: { findFirstOrThrow: jest.fn() },
+          },
         },
       ],
     }).compile();

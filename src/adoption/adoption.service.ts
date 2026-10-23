@@ -41,6 +41,35 @@ export class AdoptionService {
   ) {}
 
   /**
+   * Loads a single adoption with its pet and participants.
+   * Resource-level authorization is enforced by PoliciesGuard before this runs.
+   *
+   * @throws NotFoundException if the adoption does not exist
+   */
+  async findOne(adoptionId: string) {
+    const adoption = await this.prisma.adoption.findUnique({
+      where: { id: adoptionId },
+      include: {
+        pet: {
+          select: { id: true, name: true, species: true, imageUrl: true },
+        },
+        adopter: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        owner: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
+    });
+
+    if (!adoption) {
+      throw new NotFoundException(`Adoption with id "${adoptionId}" not found`);
+    }
+
+    return adoption;
+  }
+
+  /**
    * Creates an adoption request and fires an ADOPTION_REQUESTED event.
    * Throws NotFoundException if the pet does not exist.
    * Throws ConflictException if the pet has no owner or already has an active adoption.

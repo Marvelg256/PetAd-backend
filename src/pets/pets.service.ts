@@ -13,25 +13,19 @@ import {
   PaginatedResponseDto,
   PaginationMetaDto,
 } from '../common/dto/paginated-response.dto';
-import { Prisma, AdoptionStatus, CustodyStatus } from '@prisma/client';
+import {
+  Prisma,
+  AdoptionStatus,
+  CustodyStatus,
+  UserStatus,
+} from '@prisma/client';
 import { UserRole } from '../common/enums';
 import { PetStatus } from '../common/enums/pet-status.enum';
 import { PetAvailabilityService } from './services/pet-availability.service';
 import { petAvailabilityReducer } from '../events/reducers/pet-availability.reducer';
 
-/** Default radius (km) for a `near` search when none is supplied. */
-const DEFAULT_RADIUS_KM = 10;
-
-/** Maximum radius (km) accepted for a `near` search. */
-const MAX_RADIUS_KM = 200;
-
-/**
- * Rounds a coordinate to 3 decimal places (~100 m at the equator).
- * Listings only ever store and expose this fuzzed precision, so an owner's
- * exact address can never be reconstructed from the API.
- */
-function roundCoordinate(value: number): number {
-  return Math.round(value * 1000) / 1000;
+export interface PetsViewer {
+  role?: string;
 }
 
 @Injectable()
@@ -77,7 +71,7 @@ export class PetsService {
     });
   }
 
-  async findAll(searchDto: SearchPetsDto = {}) {
+  async findAll(searchDto: SearchPetsDto = {}, viewer: PetsViewer = {}) {
     const {
       page = 1,
       limit = 20,
@@ -118,8 +112,17 @@ export class PetsService {
       }),
     };
 
-    if (near !== undefined) {
-      return this.findAllNearby({ where, near, radius, page, limit });
+    // Listings owned by suspended accounts are hidden from the public search.
+    // Admins keep the full picture so they can moderate.
+    if (viewer.role !== UserRole.ADMIN) {
+      where.AND = [
+        {
+          OR: [
+            { currentOwnerId: null },
+            { currentOwner: { status: UserStatus.ACTIVE } },
+          ],
+        },
+      ];
     }
 
     const skip = (page - 1) * limit;

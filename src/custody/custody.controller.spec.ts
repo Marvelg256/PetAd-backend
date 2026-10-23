@@ -4,6 +4,7 @@ import { CustodyService } from './custody.service';
 import type { CreateCustodyDto } from './dto/create-custody.dto';
 import type { CustodyResponseDto } from './dto/custody-response.dto';
 import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('CustodyController', () => {
   let controller: CustodyController;
@@ -20,6 +21,13 @@ describe('CustodyController', () => {
         {
           provide: CustodyService,
           useValue: mockCustodyService,
+        },
+        // Required by PoliciesGuard, which protects the custody endpoints.
+        {
+          provide: PrismaService,
+          useValue: {
+            custody: { findFirstOrThrow: jest.fn() },
+          },
         },
       ],
     }).compile();

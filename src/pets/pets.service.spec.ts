@@ -100,6 +100,40 @@ describe('PetsService', () => {
     expect(result.meta.total).toBe(1);
   });
 
+  it('hides pets owned by suspended accounts from public search', async () => {
+    mockPrisma.pet.findMany.mockResolvedValue([]);
+    mockPrisma.pet.count.mockResolvedValue(0);
+
+    await service.findAll({});
+
+    const [[findManyCall]] = mockPrisma.pet.findMany.mock.calls as unknown as [
+      [{ where: { AND: unknown[] } }],
+    ];
+    const [[countCall]] = mockPrisma.pet.count.mock.calls as unknown as [
+      [{ where: { AND: unknown[] } }],
+    ];
+
+    expect(findManyCall.where.AND).toEqual([
+      {
+        OR: [{ currentOwnerId: null }, { currentOwner: { status: 'ACTIVE' } }],
+      },
+    ]);
+    expect(countCall.where.AND).toHaveLength(1);
+  });
+
+  it("keeps suspended owners' pets visible to admins", async () => {
+    mockPrisma.pet.findMany.mockResolvedValue([]);
+    mockPrisma.pet.count.mockResolvedValue(0);
+
+    await service.findAll({}, { role: 'ADMIN' });
+
+    const [[findManyCall]] = mockPrisma.pet.findMany.mock.calls as unknown as [
+      [{ where: Record<string, unknown> }],
+    ];
+
+    expect(findManyCall.where.AND).toBeUndefined();
+  });
+
   it('should filter by species', async () => {
     mockPrisma.pet.findMany.mockResolvedValue([]);
     mockPrisma.pet.count.mockResolvedValue(0);
