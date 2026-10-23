@@ -1,6 +1,6 @@
 # Issue #22: Admin Approval - Implementation Complete ✅
 
-## Summary
+##Summary
 
 Successfully implemented admin approval and rejection endpoints for adoption requests as specified in issue #22. The implementation is complete, tested, and ready for review.
 

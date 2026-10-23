@@ -4,7 +4,7 @@ Thanks for your interest in contributing! Here's how to get started.
 
 ---
 
-## 🚀 Quick Start
+# 🚀 Quick Start
 
 1. **Fork the repository**
 2. **Clone your fork:**

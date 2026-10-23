@@ -15,6 +15,29 @@ export class DocumentsService {
     private readonly cloudinary: CloudinaryService,
   ) {}
 
+  /**
+   * Loads a single document.
+   * Resource-level authorization is enforced by PoliciesGuard before this runs.
+   *
+   * @throws NotFoundException if the document does not exist
+   */
+  async findOne(documentId: string) {
+    const document = await this.prisma.document.findUnique({
+      where: { id: documentId },
+      include: {
+        adoption: {
+          select: { id: true, petId: true, adopterId: true, ownerId: true },
+        },
+      },
+    });
+
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+
+    return document;
+  }
+
   async uploadDocuments(
     adoptionId: string,
     userId: string,

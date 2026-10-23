@@ -15,12 +15,16 @@ import {
   Prisma,
   AdoptionStatus,
   CustodyStatus,
-  EventEntityType,
+  UserStatus,
 } from '@prisma/client';
 import { UserRole } from '../common/enums';
 import { PetStatus } from '../common/enums/pet-status.enum';
 import { PetAvailabilityService } from './services/pet-availability.service';
 import { petAvailabilityReducer } from '../events/reducers/pet-availability.reducer';
+
+export interface PetsViewer {
+  role?: string;
+}
 
 @Injectable()
 export class PetsService {
@@ -54,7 +58,7 @@ export class PetsService {
     });
   }
 
-  async findAll(searchDto: SearchPetsDto = {}) {
+  async findAll(searchDto: SearchPetsDto = {}, viewer: PetsViewer = {}) {
     const {
       page = 1,
       limit = 20,
@@ -92,6 +96,19 @@ export class PetsService {
         ],
       }),
     };
+
+    // Listings owned by suspended accounts are hidden from the public search.
+    // Admins keep the full picture so they can moderate.
+    if (viewer.role !== UserRole.ADMIN) {
+      where.AND = [
+        {
+          OR: [
+            { currentOwnerId: null },
+            { currentOwner: { status: UserStatus.ACTIVE } },
+          ],
+        },
+      ];
+    }
 
     const skip = (page - 1) * limit;
 

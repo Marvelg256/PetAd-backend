@@ -4,7 +4,7 @@
 # # Set working directory
 # WORKDIR /app
 
-# # Copy package files first (better caching)
+# Copy package files first (better caching)
 # COPY package*.json ./
 
 # # Install dependencies

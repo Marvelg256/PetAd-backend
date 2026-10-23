@@ -15,6 +15,12 @@ enum UserRole {
   SHELTER
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
 enum PetSpecies {
   DOG
   CAT
@@ -104,6 +110,8 @@ enum EventType {
   ESCROW_RELEASED
   ESCROW_REFUNDED
   TRUST_SCORE_UPDATED
+  USER_SUSPENDED
+  USER_REINSTATED
 }
 
 enum LogLevel {
@@ -120,6 +128,10 @@ model User {
   firstName String   @map("first_name")
   lastName  String   @map("last_name")
   role      UserRole @default(USER)
+
+  status           UserStatus @default(ACTIVE)
+  suspendedAt      DateTime?  @map("suspended_at")
+  suspensionReason String?    @map("suspension_reason")
 
   trustScore Float   @default(50)
 
@@ -139,8 +151,23 @@ model User {
   events EventLog[] @relation("ActorEvents")
 
   documents Document[]
+  passwordResetTokens PasswordResetToken[]
 
+  @@index([status])
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique @map("token_hash")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 
