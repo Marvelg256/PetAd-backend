@@ -28,6 +28,21 @@ export interface PetsViewer {
   role?: string;
 }
 
+/** Coordinates are persisted with 3 decimal places (~100 m) of precision. */
+const COORDINATE_DECIMALS = 3;
+const COORDINATE_FACTOR = 10 ** COORDINATE_DECIMALS;
+
+/**
+ * Rounds a coordinate so listings never carry an owner's exact address.
+ */
+function roundCoordinate(value: number): number {
+  return Math.round(value * COORDINATE_FACTOR) / COORDINATE_FACTOR;
+}
+
+/** Default and maximum radius for `near` searches, in kilometres. */
+const DEFAULT_RADIUS_KM = 10;
+const MAX_RADIUS_KM = 200;
+
 @Injectable()
 export class PetsService {
   constructor(
@@ -123,6 +138,10 @@ export class PetsService {
           ],
         },
       ];
+    }
+
+    if (near) {
+      return this.findAllNearby({ where, near, radius, page, limit });
     }
 
     const skip = (page - 1) * limit;
