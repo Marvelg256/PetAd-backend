@@ -1,9 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  adoptionReducer,
-  EventsService,
-  EventLedger,
-} from './events.service';
+import { adoptionReducer, EventsService, EventLedger } from './events.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEntityType, EventType } from '@prisma/client';
 

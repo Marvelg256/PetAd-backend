@@ -81,9 +81,7 @@ describe('EventLedgerService', () => {
       });
     }
 
-    expect(createdEvents.map((e) => e.sequenceNumber)).toEqual([
-      1, 2, 3, 4, 5,
-    ]);
+    expect(createdEvents.map((e) => e.sequenceNumber)).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('uses a DB transaction for each append', async () => {
@@ -193,7 +191,7 @@ describe('EventLedgerService', () => {
     let callCount = 0;
 
     // Simulate advisory lock: queue callbacks and run them serially
-    let txQueue: Array<() => Promise<unknown>> = [];
+    const txQueue: Array<() => Promise<unknown>> = [];
     let processing = false;
 
     const processQueue = async (): Promise<void> => {
@@ -313,8 +311,6 @@ describe('EventLedgerService', () => {
       });
     }
 
-    expect(createdEvents.map((e) => e.sequenceNumber)).toEqual([
-      1, 2, 3, 4, 5,
-    ]);
+    expect(createdEvents.map((e) => e.sequenceNumber)).toEqual([1, 2, 3, 4, 5]);
   });
 });

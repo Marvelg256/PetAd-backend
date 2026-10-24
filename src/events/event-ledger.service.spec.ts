@@ -57,7 +57,9 @@ describe('EventLedgerService', () => {
       });
     }
 
-    expect(events.map((event) => event.sequenceNumber)).toEqual([1, 2, 3, 4, 5]);
+    expect(events.map((event) => event.sequenceNumber)).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
   });
 
   it('detects missing sequence numbers', async () => {

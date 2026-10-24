@@ -107,7 +107,9 @@ export class CustodyController {
     description:
       'Not Found - Custody does not exist, or you are not its holder',
   })
-  async returnCustody(@Param('id') custodyId: string): Promise<CustodyResponseDto> {
+  async returnCustody(
+    @Param('id') custodyId: string,
+  ): Promise<CustodyResponseDto> {
     return this.custodyService.returnCustody(custodyId);
   }
 
@@ -135,7 +137,9 @@ export class CustodyController {
     description:
       'Not Found - Custody does not exist, or you are neither its holder nor the pet owner',
   })
-  async violationCustody(@Param('id') custodyId: string): Promise<CustodyResponseDto> {
+  async violationCustody(
+    @Param('id') custodyId: string,
+  ): Promise<CustodyResponseDto> {
     return this.custodyService.violationCustody(custodyId);
   }
 }

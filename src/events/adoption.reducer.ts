@@ -69,7 +69,8 @@ export function adoptionReducer(
 
   switch (event.eventType) {
     case 'ADOPTION_REQUESTED': {
-      const adopterId = getString(payload, 'adopterId', 'userId') ?? state.adopterId;
+      const adopterId =
+        getString(payload, 'adopterId', 'userId') ?? state.adopterId;
       const petId = getString(payload, 'petId') ?? state.petId;
 
       return {

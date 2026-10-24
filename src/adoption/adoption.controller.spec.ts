@@ -64,8 +64,8 @@ describe('AdoptionController', () => {
   describe('approveAdoption', () => {
     it('should approve an adoption and return the updated adoption', async () => {
       const req = { user: { userId: 'admin-123' } } as unknown as Request;
-      const mockAdoption = { 
-        id: 'adoption-1', 
+      const mockAdoption = {
+        id: 'adoption-1',
         status: 'APPROVED',
         pet: { id: 'pet-1', name: 'Buddy' },
         adopter: { id: 'user-1', email: 'user@test.com' },
@@ -110,15 +110,19 @@ describe('AdoptionController', () => {
     it('should reject an adoption with reason', async () => {
       const req = { user: { userId: 'admin-123' } } as unknown as Request;
       const dto = { reason: 'Incomplete documentation' };
-      const mockAdoption = { 
-        id: 'adoption-1', 
+      const mockAdoption = {
+        id: 'adoption-1',
         status: 'REJECTED',
         notes: '[REJECTED] Incomplete documentation',
         pet: { id: 'pet-1', name: 'Buddy' },
       };
       mockAdoptionService.rejectAdoption.mockResolvedValue(mockAdoption);
 
-      const result = await controller.rejectAdoption(req as any, 'adoption-1', dto);
+      const result = await controller.rejectAdoption(
+        req as any,
+        'adoption-1',
+        dto,
+      );
 
       expect(result).toEqual(mockAdoption);
       expect(mockAdoptionService.rejectAdoption).toHaveBeenCalledWith(
@@ -134,7 +138,11 @@ describe('AdoptionController', () => {
       const mockAdoption = { id: 'adoption-1', status: 'REJECTED' };
       mockAdoptionService.rejectAdoption.mockResolvedValue(mockAdoption);
 
-      const result = await controller.rejectAdoption(req as any, 'adoption-1', dto);
+      const result = await controller.rejectAdoption(
+        req as any,
+        'adoption-1',
+        dto,
+      );
 
       expect(result).toEqual(mockAdoption);
       expect(mockAdoptionService.rejectAdoption).toHaveBeenCalledWith(
@@ -198,4 +206,3 @@ describe('AdoptionController', () => {
     ).rejects.toThrow('Failed to record adoption approval event');
   });
 });
-

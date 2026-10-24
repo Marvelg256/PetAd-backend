@@ -7,15 +7,6 @@ import {
   ResourcePolicy,
 } from './policy.types';
 
-/**
- * Custody access rules.
- *
- * - ADMIN: full access.
- * - holder: read, update, return the pet and report a violation.
- * - pet owner: read, update and report a violation, but never return custody
- *   on the holder's behalf.
- * - everyone else: no access (surfaces as 404, never 403).
- */
 export class CustodyPolicy implements ResourcePolicy<CustodyPolicyResource> {
   readonly subject = PolicySubject.CUSTODY;
 

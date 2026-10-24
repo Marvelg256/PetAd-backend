@@ -19,11 +19,6 @@ const adoptionPolicy = new AdoptionPolicy();
 const custodyPolicy = new CustodyPolicy();
 const documentPolicy = new DocumentPolicy();
 
-/**
- * Prisma's `findFirstOrThrow` raises P2025 when no row matches. We translate
- * that into a 404 so a foreign resource is indistinguishable from a missing
- * one, which is the whole point of loading with the actor's own filter.
- */
 async function findOrNotFound<T>(
   query: () => Promise<T>,
   resourceName: string,
@@ -41,10 +36,6 @@ async function findOrNotFound<T>(
   }
 }
 
-/**
- * Loads an adoption the actor is allowed to see at all: admins can load any
- * adoption, participants only their own. Anything else is a 404.
- */
 export function loadAdoptionForActor(
   prisma: PolicyPrisma,
   actor: PolicyActor,
@@ -66,10 +57,6 @@ export function loadAdoptionForActor(
   );
 }
 
-/**
- * Loads a custody the actor holds or owns a pet in. The pet is included so
- * the policy can resolve the "owner" role without a second query.
- */
 export function loadCustodyForActor(
   prisma: PolicyPrisma,
   actor: PolicyActor,
@@ -98,10 +85,6 @@ export function loadCustodyForActor(
   );
 }
 
-/**
- * Loads a document the actor uploaded or that belongs to an adoption they are
- * party to.
- */
 export function loadDocumentForActor(
   prisma: PolicyPrisma,
   actor: PolicyActor,
@@ -131,11 +114,6 @@ export function loadDocumentForActor(
   );
 }
 
-/**
- * Loads the resource named by the requirement and throws 404 when the actor
- * cannot act on it. A participant who is denied a specific action also gets a
- * 404 so the endpoint does not leak resource existence.
- */
 export async function enforcePolicy(
   prisma: PolicyPrisma,
   requirement: PolicyRequirement,

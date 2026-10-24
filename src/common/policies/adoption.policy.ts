@@ -7,13 +7,6 @@ import {
   ResourcePolicy,
 } from './policy.types';
 
-/**
- * Adoption access rules.
- *
- * - ADMIN: full access to every adoption.
- * - adopter / owner (the two parties): read, update and upload documents.
- * - everyone else: no access (surfaces as 404, never 403).
- */
 export class AdoptionPolicy implements ResourcePolicy<AdoptionPolicyResource> {
   readonly subject = PolicySubject.ADOPTION;
 

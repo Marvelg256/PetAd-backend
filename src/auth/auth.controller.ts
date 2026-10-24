@@ -1,14 +1,24 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
   Req,
+Res,
+  UseGuards,
 } from '@nestjs/common';
-import type { Request } from 'express';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -17,24 +27,92 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userAgent = req.headers['user-agent'];
+    const ip = req.ip;
+    const result = await this.authService.register(dto, userAgent, ip);
+    this.setRefreshTokenCookie(res, result.refresh_token);
+    return { access_token: result.access_token, user: result.user };
   }
 
   @Post('login')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 201, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userAgent = req.headers['user-agent'];
+    const ip = req.ip;
+    const result = await this.authService.login(dto, userAgent, ip);
+    this.setRefreshTokenCookie(res, result.refresh_token);
+    return { access_token: result.access_token, user: result.user };
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or reused refresh token' })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const token = (req as any).cookies?.refresh_token || req.body?.refresh_token;
+    const userAgent = req.headers['user-agent'];
+    const ip = req.ip;
+    const result = await this.authService.refresh(token, userAgent, ip);
+    this.setRefreshTokenCookie(res, result.refresh_token);
+    return { access_token: result.access_token, user: result.user };
+  }
+
+
+
+  private setRefreshTokenCookie(res: Response, token: string) {
+    const isProd = this.configService.get('NODE_ENV') === 'production';
+    res.cookie('refresh_token', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, description: 'Current user profile' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async me(@Req() req: Request) {
+    const user = req.user as { sub?: string; userId?: string } | undefined;
+    return this.authService.getCurrentUser(user?.sub ?? user?.userId);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Logout' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully' })
+  async logout() {
+    return this.authService.logout();
   }
 
   @Post('password/forgot')

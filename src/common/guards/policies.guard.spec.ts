@@ -118,7 +118,6 @@ describe('PoliciesGuard', () => {
       subject: PolicySubject.CUSTODY,
       param: 'id',
     });
-    // The pet owner participates in the custody but may not return it.
     prisma.custody.findFirstOrThrow.mockResolvedValue({
       id: 'custody-1',
       holderId: 'holder-1',

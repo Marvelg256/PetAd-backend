@@ -1,7 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
-import { EscrowStatus, AdoptionStatus, EventEntityType, EventType } from '@prisma/client';
+import {
+  EscrowStatus,
+  AdoptionStatus,
+  EventEntityType,
+  EventType,
+} from '@prisma/client';
 import { AdoptionStateMachine } from '../adoption/services/adoption-state-machine.service';
 import { PetAvailabilityService } from '../pets/services/pet-availability.service';
 import { PetStatus } from '../common/enums/pet-status.enum';
@@ -12,8 +17,7 @@ export class EscrowService {
     private readonly prisma: PrismaService,
     private readonly events: EventsService,
     private readonly adoptionStateMachine: AdoptionStateMachine,
-    private readonly petAvailabilityService: PetAvailabilityService,
-  ) { }
+  ) {}
 
   async createEscrow(amount: number, tx?: any) {
     const prismaClient = tx || this.prisma;
@@ -67,7 +71,7 @@ export class EscrowService {
 
         // Enforce state machine: ensure adoption is in ESCROW_FUNDED before completing
         this.adoptionStateMachine.assertValidTransition(
-          adoption.status as AdoptionStatus,
+          adoption.status,
           AdoptionStatus.COMPLETED,
         );
 

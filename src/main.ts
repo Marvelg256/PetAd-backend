@@ -24,6 +24,22 @@ const API_PREFIX = 'api/v1';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use((req: any, res: any, next: () => void) => {
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+      const cookies: Record<string, string> = {};
+      cookieHeader.split(';').forEach((cookie: string) => {
+        const parts = cookie.split('=');
+        if (parts.length === 2) {
+          cookies[parts[0].trim()] = decodeURIComponent(parts[1].trim());
+        }
+      });
+      req.cookies = cookies;
+    } else {
+      req.cookies = {};
+    }
+    next();
+  });
   // TODO(#215): Add server-side TOTP enrollment, challenge, and recovery flows.
   // TODO(#204): Coordinate graceful shutdown of Prisma, Redis, and job workers.
 
@@ -139,4 +155,4 @@ async function bootstrap() {
   console.log(`Swagger UI: http://localhost:${port}/api`);
 }
 
-bootstrap();
+void bootstrap();

@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +20,14 @@ enum UserStatus {
   DELETED
 }
 
+enum DataExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
 enum PetSpecies {
   DOG
   CAT
@@ -28,16 +35,6 @@ enum PetSpecies {
   RABBIT
   OTHER
 }
-
-enum PetStatus {
-  AVAILABLE
-  PENDING
-  IN_CUSTODY
-  ADOPTED
-}
-
-
-
 
 enum AdoptionStatus {
   REQUESTED
@@ -48,7 +45,6 @@ enum AdoptionStatus {
   REJECTED
   CANCELLED
 }
-
 
 enum CustodyStatus {
   ACTIVE
@@ -65,8 +61,6 @@ enum CustodyType {
   SHELTER
 }
 
-
-
 enum EscrowStatus {
   CREATED
   FUNDED
@@ -75,7 +69,6 @@ enum EscrowStatus {
   DISPUTED
 }
 
-
 enum EventEntityType {
   USER
   PET
@@ -83,7 +76,6 @@ enum EventEntityType {
   CUSTODY
   ESCROW
 }
-
 
 enum EventType {
   USER_REGISTERED
@@ -101,7 +93,7 @@ enum EventType {
   CUSTODY_STARTED
   CUSTODY_COMPLETED
   CUSTODY_RETURNED
- PET_CUSTODY_CANCELLED
+  PET_CUSTODY_CANCELLED
   CUSTODY_VIOLATION
   CUSTODY_CANCELLED
   CUSTODY_EXTENDED
@@ -119,15 +111,33 @@ enum LogLevel {
   WARN
   ERROR
 }
+
 // ─── Models ──────────────────────────────────────────────
 
+model Session {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  familyId    String
+  userAgent   String?
+  ip          String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("sessions")
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   password  String
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  role      UserRole @default(USER)
+  firstName String     @map("first_name")
+  lastName  String     @map("last_name")
+  role      UserRole   @default(USER)
 
   status           UserStatus @default(ACTIVE)
   suspendedAt      DateTime?  @map("suspended_at")
@@ -135,8 +145,9 @@ model User {
 
   trustScore Float   @default(50)
 
-  stellarPublicKey String? @unique @map("stellar_public_key")
-  avatarUrl        String? @map("avatar_url")
+  stellarPublicKey String?   @unique @map("stellar_public_key")
+  avatarUrl        String?   @map("avatar_url")
+  deletedAt        DateTime? @map("deleted_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -152,6 +163,9 @@ model User {
 
   documents Document[]
   passwordResetTokens PasswordResetToken[]
+  sessions    Session[]
+
+  dataExports DataExport[]
 
   @@index([status])
   @@map("users")
@@ -169,8 +183,6 @@ model PasswordResetToken {
   @@index([userId])
   @@map("password_reset_tokens")
 }
-
-
 
 model Pet {
   id          String      @id @default(uuid())
@@ -196,7 +208,6 @@ model Pet {
   @@index([currentOwnerId])
   @@map("pets")
 }
-
 
 model Adoption {
   id     String         @id @default(uuid())
@@ -225,8 +236,6 @@ model Adoption {
   @@map("adoptions")
 }
 
-
-
 model Custody {
   id       String        @id @default(uuid())
   status   CustodyStatus @default(ACTIVE)
@@ -253,7 +262,6 @@ model Custody {
   @@index([holderId])
   @@map("custodies")
 }
-
 
 model Escrow {
   id String @id @default(uuid())
@@ -284,7 +292,6 @@ model Escrow {
   @@map("escrows")
 }
 
-
 model AppLog {
   id        String   @id @default(uuid())
   level     LogLevel
@@ -293,8 +300,9 @@ model AppLog {
   userId    String?
   metadata  Json?
   createdAt DateTime @default(now())
-}
 
+  @@map("app_logs")
+}
 
 model EventLog {
   id          String           @id @default(uuid())
@@ -333,5 +341,25 @@ model Document {
 
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   adoption     Adoption @relation(fields: [adoptionId], references: [id])
+
+  @@map("documents")
 }
 
+model DataExport {
+  id           String           @id @default(uuid())
+  userId       String           @map("user_id")
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       DataExportStatus @default(PENDING)
+  filePath     String?          @map("file_path")
+  fileSize     Int?             @map("file_size")
+  downloadUrl  String?          @map("download_url")
+  expiresAt    DateTime?        @map("expires_at")
+  errorMessage String?          @map("error_message")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("data_exports")
+}

@@ -7,15 +7,6 @@ import {
   ResourcePolicy,
 } from './policy.types';
 
-/**
- * Document access rules.
- *
- * - ADMIN: full access.
- * - uploader: read and delete their own upload.
- * - adoption parties (adopter / owner): read the documents attached to their
- *   adoption.
- * - everyone else: no access (surfaces as 404, never 403).
- */
 export class DocumentPolicy implements ResourcePolicy<DocumentPolicyResource> {
   readonly subject = PolicySubject.DOCUMENT;
 

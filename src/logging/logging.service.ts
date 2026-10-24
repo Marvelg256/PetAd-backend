@@ -1,4 +1,3 @@
-
 // import { Injectable, InternalServerErrorException } from '@nestjs/common';
 // import { PrismaService } from '../../src/prisma/prisma.service';
 
@@ -34,8 +33,6 @@
 //     }
 //   }
 // }
-
-
 
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';

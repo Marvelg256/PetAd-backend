@@ -111,8 +111,7 @@ export class EventLedgerRepository {
     const sequences = events
       .map((e: { sequenceNumber?: unknown }) => e.sequenceNumber)
       .filter(
-        (s: unknown): s is number =>
-          Number.isInteger(s) && (s as number) > 0,
+        (s: unknown): s is number => Number.isInteger(s) && (s as number) > 0,
       );
 
     const highest = sequences.length > 0 ? Math.max(...sequences) : 0;

@@ -1,4 +1,3 @@
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggingService } from './logging.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -45,9 +44,9 @@ describe('LoggingService', () => {
   });
 
   it('should return null and not throw when db fails', async () => {
-    jest.spyOn(service['prisma'].appLog, 'create').mockRejectedValueOnce(
-      new Error('DB down'),
-    );
+    jest
+      .spyOn(service['prisma'].appLog, 'create')
+      .mockRejectedValueOnce(new Error('DB down'));
     const result = await service.log({
       level: 'ERROR',
       action: 'TEST_FAIL',

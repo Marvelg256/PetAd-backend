@@ -32,7 +32,6 @@ import { RejectAdoptionDto } from './dto/reject-adoption.dto';
 import { CheckPolicy } from '../common/policies/check-policy.decorator';
 import { PolicyAction, PolicySubject } from '../common/policies/policy.types';
 
-
 interface AuthRequest extends Request {
   user: { userId: string; email: string; role: string; sub?: string };
 }
@@ -175,11 +174,25 @@ export class AdoptionController {
    * Retrieves all adoptions matching the query parameters and the user's role constraints.
    */
   @Get()
-  @ApiOperation({ summary: 'Get all adoptions for the current user based on role' })
-  @ApiQuery({ name: 'status', required: false, enum: ['REQUESTED', 'PENDING', 'APPROVED', 'ESCROW_FUNDED', 'COMPLETED', 'REJECTED', 'CANCELLED'] })
+  @ApiOperation({
+    summary: 'Get all adoptions for the current user based on role',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: [
+      'REQUESTED',
+      'PENDING',
+      'APPROVED',
+      'ESCROW_FUNDED',
+      'COMPLETED',
+      'REJECTED',
+      'CANCELLED',
+    ],
+  })
   @ApiQuery({ name: 'petId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of adoptions' })
-  async findAll(
+async findAll(
     @GetUser() user: any,
     @Query() query: FilterAdoptionsDto,
   ) {

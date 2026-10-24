@@ -87,7 +87,10 @@ describe('AdoptionService', () => {
     const dto = { petId: PET_ID, ownerId: OWNER_ID };
 
     it('creates the adoption record and fires ADOPTION_REQUESTED', async () => {
-      mockPrisma.pet.findUnique.mockResolvedValue({ id: PET_ID, currentOwnerId: OWNER_ID });
+      mockPrisma.pet.findUnique.mockResolvedValue({
+        id: PET_ID,
+        currentOwnerId: OWNER_ID,
+      });
       mockPrisma.adoption.findFirst.mockResolvedValue(null);
       mockPrisma.adoption.create.mockResolvedValue(mockAdoption);
       mockEvents.logEvent.mockResolvedValue({});
@@ -134,7 +137,10 @@ describe('AdoptionService', () => {
     });
 
     it('throws ConflictException when the pet has no owner assigned', async () => {
-      mockPrisma.pet.findUnique.mockResolvedValue({ id: PET_ID, currentOwnerId: null });
+      mockPrisma.pet.findUnique.mockResolvedValue({
+        id: PET_ID,
+        currentOwnerId: null,
+      });
 
       await expect(service.requestAdoption(ADOPTER_ID, dto)).rejects.toThrow(
         ConflictException,
@@ -144,7 +150,10 @@ describe('AdoptionService', () => {
     });
 
     it('throws ConflictException when there is an active adoption', async () => {
-      mockPrisma.pet.findUnique.mockResolvedValue({ id: PET_ID, currentOwnerId: OWNER_ID });
+      mockPrisma.pet.findUnique.mockResolvedValue({
+        id: PET_ID,
+        currentOwnerId: OWNER_ID,
+      });
       mockPrisma.adoption.findFirst.mockResolvedValue(mockAdoption);
 
       await expect(service.requestAdoption(ADOPTER_ID, dto)).rejects.toThrow(
@@ -155,7 +164,10 @@ describe('AdoptionService', () => {
     });
 
     it('propagates logEvent errors (no silent failure)', async () => {
-      mockPrisma.pet.findUnique.mockResolvedValue({ id: PET_ID, currentOwnerId: OWNER_ID });
+      mockPrisma.pet.findUnique.mockResolvedValue({
+        id: PET_ID,
+        currentOwnerId: OWNER_ID,
+      });
       mockPrisma.adoption.findFirst.mockResolvedValue(null);
       mockPrisma.adoption.create.mockResolvedValue(mockAdoption);
       mockEvents.logEvent.mockRejectedValue(new Error('DB connection lost'));
@@ -308,8 +320,11 @@ describe('AdoptionService', () => {
 
     it('allows ADMIN to see all adoptions', async () => {
       mockPrisma.adoption.findMany.mockResolvedValue([mockAdoption]);
-      const result = await service.findAll({ id: 'admin-1', role: 'ADMIN' }, { status: 'REQUESTED' });
-      
+      const result = await service.findAll(
+        { id: 'admin-1', role: 'ADMIN' },
+        { status: 'REQUESTED' },
+      );
+
       expect(mockPrisma.adoption.findMany).toHaveBeenCalledWith({
         where: { status: 'REQUESTED' },
         orderBy: { createdAt: 'desc' },
@@ -320,7 +335,10 @@ describe('AdoptionService', () => {
 
     it('restricts SHELTER to their own adoptions as owner', async () => {
       mockPrisma.adoption.findMany.mockResolvedValue([mockAdoption]);
-      const result = await service.findAll({ id: 'shelter-1', role: 'SHELTER' }, { petId: 'pet-1' });
+      const result = await service.findAll(
+        { id: 'shelter-1', role: 'SHELTER' },
+        { petId: 'pet-1' },
+      );
 
       expect(mockPrisma.adoption.findMany).toHaveBeenCalledWith({
         where: { petId: 'pet-1', ownerId: 'shelter-1' },
@@ -329,7 +347,7 @@ describe('AdoptionService', () => {
       });
     });
 
-    it('verifies that a USER cannot see another user\'s adoptions (forces adopterId to user.id)', async () => {
+    it("verifies that a USER cannot see another user's adoptions (forces adopterId to user.id)", async () => {
       mockPrisma.adoption.findMany.mockResolvedValue([mockAdoption]);
       const result = await service.findAll({ id: 'user-2', role: 'USER' }, {});
 
@@ -337,8 +355,12 @@ describe('AdoptionService', () => {
         where: { adopterId: 'user-2' },
         orderBy: { createdAt: 'desc' },
         include: {
-          pet: { select: { id: true, name: true, species: true, imageUrl: true } },
-          adopter: { select: { id: true, firstName: true, lastName: true, email: true } },
+          pet: {
+            select: { id: true, name: true, species: true, imageUrl: true },
+          },
+          adopter: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
         },
       });
       // the query directly uses the user.id from the JWT payload to filter, blocking unauthorized access.
@@ -352,13 +374,23 @@ describe('AdoptionService', () => {
       ...mockAdoption,
       status: AdoptionStatus.PENDING,
       pet: { id: PET_ID, name: 'Buddy', species: 'DOG' },
-      adopter: { id: ADOPTER_ID, email: 'adopter@test.com', firstName: 'John', lastName: 'Doe' },
+      adopter: {
+        id: ADOPTER_ID,
+        email: 'adopter@test.com',
+        firstName: 'John',
+        lastName: 'Doe',
+      },
     };
 
     const approvedAdoption = {
       ...pendingAdoption,
       status: AdoptionStatus.APPROVED,
-      owner: { id: OWNER_ID, email: 'owner@test.com', firstName: 'Jane', lastName: 'Smith' },
+      owner: {
+        id: OWNER_ID,
+        email: 'owner@test.com',
+        firstName: 'Jane',
+        lastName: 'Smith',
+      },
     };
 
     it('approves a PENDING adoption and fires ADOPTION_APPROVED event', async () => {
@@ -454,18 +486,16 @@ describe('AdoptionService', () => {
 
     it('does not fail if eventLedgerService is not provided', async () => {
       // Create service without EventLedgerService
-      const moduleWithoutLedger: TestingModule = await Test.createTestingModule({
-        providers: [
-          AdoptionService,
-          { provide: PrismaService, useValue: mockPrisma },
-          { provide: EventsService, useValue: mockEvents },
-          { provide: AdoptionStateMachine, useValue: mockStateMachine },
-          {
-            provide: PetAvailabilityService,
-            useValue: mockPetAvailabilityService,
-          },
-        ],
-      }).compile();
+      const moduleWithoutLedger: TestingModule = await Test.createTestingModule(
+        {
+          providers: [
+            AdoptionService,
+            { provide: PrismaService, useValue: mockPrisma },
+            { provide: EventsService, useValue: mockEvents },
+            { provide: AdoptionStateMachine, useValue: mockStateMachine },
+          ],
+        },
+      ).compile();
 
       const svc = moduleWithoutLedger.get<AdoptionService>(AdoptionService);
 
@@ -490,9 +520,12 @@ describe('AdoptionService', () => {
     });
 
     it('throws DomainException when adoption is not PENDING', async () => {
-      const completedAdoption = { ...mockAdoption, status: AdoptionStatus.COMPLETED };
+      const completedAdoption = {
+        ...mockAdoption,
+        status: AdoptionStatus.COMPLETED,
+      };
       mockPrisma.adoption.findUnique.mockResolvedValue(completedAdoption);
-      
+
       const domainError = new DomainException('Invalid transition');
       mockStateMachine.assertValidTransition.mockImplementationOnce(() => {
         throw domainError;
@@ -513,14 +546,24 @@ describe('AdoptionService', () => {
       ...mockAdoption,
       status: AdoptionStatus.PENDING,
       pet: { id: PET_ID, name: 'Buddy', species: 'DOG' },
-      adopter: { id: ADOPTER_ID, email: 'adopter@test.com', firstName: 'John', lastName: 'Doe' },
+      adopter: {
+        id: ADOPTER_ID,
+        email: 'adopter@test.com',
+        firstName: 'John',
+        lastName: 'Doe',
+      },
     };
 
     const rejectedAdoption = {
       ...pendingAdoption,
       status: AdoptionStatus.REJECTED,
       notes: '[REJECTED] Incomplete documentation',
-      owner: { id: OWNER_ID, email: 'owner@test.com', firstName: 'Jane', lastName: 'Smith' },
+      owner: {
+        id: OWNER_ID,
+        email: 'owner@test.com',
+        firstName: 'Jane',
+        lastName: 'Smith',
+      },
     };
 
     it('rejects a PENDING adoption with reason', async () => {
@@ -606,9 +649,12 @@ describe('AdoptionService', () => {
     });
 
     it('throws DomainException when adoption is not PENDING', async () => {
-      const approvedAdoption = { ...mockAdoption, status: AdoptionStatus.APPROVED };
+      const approvedAdoption = {
+        ...mockAdoption,
+        status: AdoptionStatus.APPROVED,
+      };
       mockPrisma.adoption.findUnique.mockResolvedValue(approvedAdoption);
-      
+
       const domainError = new DomainException('Invalid transition');
       mockStateMachine.assertValidTransition.mockImplementationOnce(() => {
         throw domainError;

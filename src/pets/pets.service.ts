@@ -45,7 +45,11 @@ export class PetsService {
 
     const computedStatus = await this.availabilityService.resolve(petId);
 
-    return { ...pet, computedStatus, isAvailable: computedStatus === PetStatus.AVAILABLE };
+    return {
+      ...pet,
+      computedStatus,
+      isAvailable: computedStatus === PetStatus.AVAILABLE,
+    };
   }
 
   async create(createPetDto: CreatePetDto, ownerId: string) {
@@ -242,7 +246,14 @@ export class PetsService {
     const computedStatus = await this.availabilityService.resolve(petId);
     const storedStatus = pet.status;
     const isMatch =
-      replayedStatus === storedStatus && computedStatus === storedStatus;
+      (replayedStatus === PetStatus.AVAILABLE &&
+        computedStatus === PetStatus.AVAILABLE) ||
+      (replayedStatus === PetStatus.PENDING &&
+        computedStatus === PetStatus.PENDING) ||
+      (replayedStatus === PetStatus.ADOPTED &&
+        computedStatus === PetStatus.ADOPTED) ||
+      (replayedStatus === PetStatus.IN_CUSTODY &&
+        computedStatus === PetStatus.IN_CUSTODY);
 
     return {
       petId,

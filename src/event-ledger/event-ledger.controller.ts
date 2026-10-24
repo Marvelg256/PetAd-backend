@@ -1,5 +1,12 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { EventLedgerService } from './event-ledger.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -38,15 +45,26 @@ export class EventLedgerController {
 
   @Get('type/:aggregateType')
   @ApiOperation({ summary: 'Get events by aggregate type' })
-  @ApiParam({ name: 'aggregateType', description: 'Aggregate type (e.g., PET, ADOPTION)' })
-  @ApiResponse({ status: 200, description: 'List of events for the aggregate type' })
-  async getEventsByAggregateType(@Param('aggregateType') aggregateType: string) {
+  @ApiParam({
+    name: 'aggregateType',
+    description: 'Aggregate type (e.g., PET, ADOPTION)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of events for the aggregate type',
+  })
+  async getEventsByAggregateType(
+    @Param('aggregateType') aggregateType: string,
+  ) {
     return this.eventLedgerService.getEventsByAggregateType(aggregateType);
   }
 
   @Get('event-type/:eventType')
   @ApiOperation({ summary: 'Get events by event type' })
-  @ApiParam({ name: 'eventType', description: 'Event type (e.g., ADOPTION_APPROVED)' })
+  @ApiParam({
+    name: 'eventType',
+    description: 'Event type (e.g., ADOPTION_APPROVED)',
+  })
   @ApiResponse({ status: 200, description: 'List of events matching the type' })
   async getEventsByEventType(@Param('eventType') eventType: string) {
     return this.eventLedgerService.getEventsByEventType(eventType);

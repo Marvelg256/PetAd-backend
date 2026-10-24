@@ -1,7 +1,4 @@
-import {
-  adoptionReducer,
-  ReplayedAdoptionState,
-} from './adoption.reducer';
+import { adoptionReducer, ReplayedAdoptionState } from './adoption.reducer';
 
 describe('adoptionReducer', () => {
   const initialState: ReplayedAdoptionState = {
@@ -59,7 +56,10 @@ describe('adoptionReducer', () => {
 
   it('logs and passes through unknown events unchanged', () => {
     const warnSpy = jest
-      .spyOn((require('@nestjs/common').Logger.prototype as { warn: jest.Mock }), 'warn')
+      .spyOn(
+        require('@nestjs/common').Logger.prototype as { warn: jest.Mock },
+        'warn',
+      )
       .mockImplementation(() => undefined);
 
     const state = {
