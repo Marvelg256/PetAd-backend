@@ -36,6 +36,13 @@ enum PetSpecies {
   OTHER
 }
 
+enum PetStatus {
+  AVAILABLE
+  PENDING
+  IN_CUSTODY
+  ADOPTED
+}
+
 enum AdoptionStatus {
   REQUESTED
   PENDING

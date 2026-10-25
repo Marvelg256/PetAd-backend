@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventsService } from '../events/events.service';
 import { NotFoundException } from '@nestjs/common';
 import { AdoptionStateMachine } from '../adoption/services/adoption-state-machine.service';
+import { PetAvailabilityService } from '../pets/services/pet-availability.service';
+import { PetStatus } from '../common/enums/pet-status.enum';
 import {
   EscrowStatus,
   AdoptionStatus,
@@ -40,6 +42,10 @@ describe('EscrowService', () => {
     canTransition: jest.fn(),
   };
 
+  const mockPetAvailabilityService = {
+    transition: jest.fn().mockResolvedValue(PetStatus.ADOPTED),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -49,6 +55,10 @@ describe('EscrowService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: EventsService, useValue: mockEventsService },
         { provide: AdoptionStateMachine, useValue: mockAdoptionStateMachine },
+        {
+          provide: PetAvailabilityService,
+          useValue: mockPetAvailabilityService,
+        },
       ],
     }).compile();
 
@@ -137,6 +147,12 @@ describe('EscrowService', () => {
       ).toHaveBeenCalledWith(
         AdoptionStatus.ESCROW_FUNDED,
         AdoptionStatus.COMPLETED,
+      );
+
+      expect(mockPetAvailabilityService.transition).toHaveBeenCalledWith(
+        mockAdoption.petId,
+        PetStatus.ADOPTED,
+        mockPrismaService,
       );
 
       expect(mockPrismaService.adoption.update).toHaveBeenCalledWith({

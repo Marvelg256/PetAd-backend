@@ -15,6 +15,6 @@ import { PetMovementService } from './services/pet-movement.service';
     PetAvailabilityService,
     PetMovementService,
   ],
-  exports: [PetsService, PetMovementService],
+  exports: [PetsService, PetAvailabilityService, PetMovementService],
 })
 export class PetsModule {}

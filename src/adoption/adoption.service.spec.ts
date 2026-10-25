@@ -493,6 +493,10 @@ describe('AdoptionService', () => {
             { provide: PrismaService, useValue: mockPrisma },
             { provide: EventsService, useValue: mockEvents },
             { provide: AdoptionStateMachine, useValue: mockStateMachine },
+            {
+              provide: PetAvailabilityService,
+              useValue: mockPetAvailabilityService,
+            },
           ],
         },
       ).compile();

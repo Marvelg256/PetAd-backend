@@ -17,6 +17,7 @@ export class EscrowService {
     private readonly prisma: PrismaService,
     private readonly events: EventsService,
     private readonly adoptionStateMachine: AdoptionStateMachine,
+    private readonly petAvailabilityService: PetAvailabilityService,
   ) {}
 
   async createEscrow(amount: number, tx?: any) {

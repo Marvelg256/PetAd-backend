@@ -17,6 +17,7 @@ import {
   Prisma,
   AdoptionStatus,
   CustodyStatus,
+  EventEntityType,
   UserStatus,
 } from '@prisma/client';
 import { UserRole } from '../common/enums';
@@ -412,14 +413,7 @@ export class PetsService {
     const computedStatus = await this.availabilityService.resolve(petId);
     const storedStatus = pet.status;
     const isMatch =
-      (replayedStatus === PetStatus.AVAILABLE &&
-        computedStatus === PetStatus.AVAILABLE) ||
-      (replayedStatus === PetStatus.PENDING &&
-        computedStatus === PetStatus.PENDING) ||
-      (replayedStatus === PetStatus.ADOPTED &&
-        computedStatus === PetStatus.ADOPTED) ||
-      (replayedStatus === PetStatus.IN_CUSTODY &&
-        computedStatus === PetStatus.IN_CUSTODY);
+      storedStatus === replayedStatus && replayedStatus === computedStatus;
 
     return {
       petId,
